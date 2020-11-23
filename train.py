@@ -24,7 +24,7 @@ import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp_dir", type=str, default="./experiments/exp1")
+    parser.add_argument("--exp_dir", type=str, default="./experiments/exp0")
     parser.add_argument("--resume", "-r", action="store_true")
     args = parser.parse_args()
     return args
@@ -32,7 +32,6 @@ args = parse_args()
 
 # ------------ config ------------
 exp_dir = args.exp_dir
-
 while exp_dir[-1]=='/':
     exp_dir = exp_dir[:-1]
 exp_name = exp_dir.split('/')[-1]
@@ -54,13 +53,8 @@ std=(0.2573, 0.2663, 0.2756)
 transform_train = Compose(Resize(resize_shape), Rotation(2), ToTensor(),
                           Normalize(mean=mean, std=std))
 dataset_name = exp_cfg['dataset'].pop('dataset_name')
-#print('**********************dataset_name',dataset_name)
 Dataset_Type = getattr(dataset, dataset_name)
-#print('dataset_type',Dataset_Type)
 train_dataset = Dataset_Type(Dataset_Path[dataset_name], "train", transform_train)
-#print(Dataset_Path[dataset_name])
-#print('dataset_path', Dataset_Path)
-#print('train_dataset', train_dataset)
 train_loader = DataLoader(train_dataset, batch_size=exp_cfg['dataset']['batch_size'], shuffle=True, collate_fn=train_dataset.collate, num_workers=6)
 
 # ------------ val data ------------
@@ -70,7 +64,7 @@ transform_val = Compose(transform_val_img, transform_val_x)
 val_dataset = Dataset_Type(Dataset_Path[dataset_name], "val", transform_val)
 val_loader = DataLoader(val_dataset, batch_size=8, collate_fn=val_dataset.collate, num_workers=4)
 
-# ------------ preparation ------------epoch
+# ------------ preparation ------------
 if exp_cfg['model'] == "scnn":
     net = SCNN(resize_shape, pretrained=True)
 elif exp_cfg['model'] == "enet_sad":
@@ -110,7 +104,6 @@ def train(epoch):
     p.start()
     """
 
-
     for batch_idx, sample in enumerate(train_loader):
         """
     for batch_idx in range(len(train_loader)):
@@ -119,8 +112,7 @@ def train(epoch):
         batch_queue.task_done()
         """
         img = sample['img'].to(device)
-        seg = sample['segLabel'].to(device)
-        #print(segLabel)
+        segLabel = sample['segLabel'].to(device)
         exist = sample['exist'].to(device)
 
         optimizer.zero_grad()
@@ -174,13 +166,13 @@ def train(epoch):
         torch.save(save_dict, save_name)
         print("model is saved: {}".format(save_name))
 
-    #print("------------------------\n")
+    print("------------------------\n")
 
 
 def val(epoch):
     global best_val_loss
 
-    #print("Val Epoch: {}".format(epoch))
+    print("Val Epoch: {}".format(epoch))
 
     net.eval()
     val_loss = 0
@@ -241,7 +233,7 @@ def val(epoch):
     tensorboard.scalar_summary("val_loss_exist", val_loss_exist, iter_idx)
     tensorboard.writer.flush()
 
-    #("------------------------\n")
+    print("------------------------\n")
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         save_name = os.path.join(exp_dir, exp_name + '.pth')
@@ -269,8 +261,8 @@ def main():
         #val(epoch)
         train(epoch)
         if epoch % 1 == 0:
-            #print("\nValidation For Experiment: ", exp_dir)
-            #print(time.strftime('%H:%M:%S', time.localtime()))
+            print("\nValidation For Experiment: ", exp_dir)
+            print(time.strftime('%H:%M:%S', time.localtime()))
             val(epoch)
 
 
