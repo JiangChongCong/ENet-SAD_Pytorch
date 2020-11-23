@@ -90,7 +90,6 @@ def batch_processor(arg):
 """
 
 def train(epoch):
-    print("Train Epoch: {}".format(epoch))
     net.train()
     train_loss = 0
     train_loss_seg = 0
