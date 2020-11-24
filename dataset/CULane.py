@@ -45,7 +45,7 @@ class CULane(Dataset):
                 self.img_list.append(os.path.join(self.data_dir_path, line[1:]))  # l[0][1:]  get rid of the first '/' so as for os.path.join
 
     def __getitem__(self, idx):
-        Image.open(self.img_list[idx])
+#         Image.open(self.img_list[idx])
         img = cv2.imread(self.img_list[idx])
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if self.image_set != 'test':
